@@ -11,9 +11,10 @@
     "tabs",
     "activeTab",
     "scripting",
-    "storage"
+    "storage",
+    "contextMenus"
   ],
   "background": {
-    "service_worker": "scripts/backgroundScript.js"
+    "service_worker": "./background.js"
   }
 }
