@@ -43,8 +43,7 @@ async function remark_start() {
         const curTab = await getCurrentTab()
         chrome.scripting.executeScript({ 
             target: { 
-                tabId: curTab.id, 
-                allFrames: true
+                tabId: curTab.id
             }, 
             files: ["scripts/contentScript.js"] ,
         });

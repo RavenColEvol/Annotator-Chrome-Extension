@@ -1,4 +1,4 @@
-console.log("from background", chrome.tabs);
+
 
 // var http_pattern =  /^https?:\/\/(.*)/
 
