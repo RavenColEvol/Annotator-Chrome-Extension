@@ -8,13 +8,15 @@
 
 
 var REMARK_SETTINGS;
-var annotations = []
+var annotations = [];
+let SELECTION_DOM = null;
 
 function remark_init(settings) {
     REMARK_SETTINGS = settings;
     console.log("DOM check and Settings check : ", document.body, REMARK_SETTINGS)
     removeAllExistingModals();
     addAllClasses();
+    initializeSelectionDOM();
     startAnnotationProcess();  
 }
 
@@ -205,7 +207,7 @@ function mouseOverListener(e) {
         const targetHTMLElement = e.target;
         let tooltipMarkup = TOOLTIP(e.target);
         targetHTMLElement.insertAdjacentHTML("afterbegin", tooltipMarkup);
-        targetHTMLElement.classList.toggle("highlight_element_light");
+        setSelectionDOMOverEl(e.target);
     }
 }
 
@@ -226,7 +228,7 @@ function mouseOutListener(e) {
         const targetHTMLElement = e.target;
         const tooltipNode = document.getElementById("remark_tooltip");
         removeHTMLElement(tooltipNode);
-        targetHTMLElement.classList.toggle("highlight_element_light");
+        // targetHTMLElement.classList.toggle("highlight_element_light");
     }
 }
 
@@ -237,6 +239,7 @@ function keyPressListener(e) {
 }
 
 function removeHTMLElement(ele) {
+    if(!ele) return;
     ele.parentElement.removeChild(ele);
     return;
 }
@@ -754,4 +757,31 @@ function getDataFromStorage(key) {
             })
         }
     )
+}
+
+function initializeSelectionDOM() {
+    const selectionDiv = document.createElement('div');
+    selectionDiv.setAttribute('id', 'selection-div');
+    selectionDiv.style.position = 'fixed';
+    selectionDiv.style.background = 'rgba(128,203,196, .75)'
+    selectionDiv.style.zIndex = '999999'
+    selectionDiv.style.pointerEvents = 'none';
+    SELECTION_DOM = selectionDiv;
+    document.body.appendChild(selectionDiv);
+}
+
+function setSelectionDOMOverEl(el) {
+    if(!el) return;
+    const box = el.getBoundingClientRect();
+    const { width, height, top, left } = box;
+    
+    const styleProps = {
+        width,
+        height,
+        top,
+        left
+    }
+    Object.entries(styleProps).forEach(([property, value]) => {
+        SELECTION_DOM.style[property] = value + 'px';
+    })
 }
