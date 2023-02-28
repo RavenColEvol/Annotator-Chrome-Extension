@@ -1,3 +1,29 @@
+/**--------------------------------------------
+ *               AUTHENTICATION FLOW
+ *---------------------------------------------**/
+const app = document.getElementById('root');
+
+const login = document.getElementById('login');
+
+const loginForm = document.getElementById('login-form');
+
+onload = async function() {
+    const isRegistered = await getDataFromStorage('email');
+    if(typeof isRegistered === 'object' && Object.keys(isRegistered).length === 0) {
+        app.style.display = 'none';
+        login.style.display = 'block';
+
+        loginForm.addEventListener('submit', async (event) => {
+            event.preventDefault();
+            const data = new FormData(event.target);
+            const email = data.get('email');
+            await setDataToStorage('email', email);
+            app.style.display = 'block';
+            login.style.display = 'none';
+        })
+    }
+}
+
 // var remarkGlobalState = {
 //     remark_settings: {
 //         // Grouping

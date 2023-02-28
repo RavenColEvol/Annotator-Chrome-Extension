@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
@@ -7,51 +8,62 @@
     <link rel="stylesheet" href="popup.css">
     <title>Annotations Control Panel</title>
 </head>
+
 <body>
-    <div class="container temp">
+    <div id="root" class="container temp">
         <h3 class="main_heading">
             REMARK
         </h3>
         <div class="settings">
             <div class="settings_subgroup">
-                <h5 class="settings_subgroup_title">GROUPING</h5>      
+                <h5 class="settings_subgroup_title">GROUPING</h5>
                 <span class="setting_subgroup_item">
                     <label class="remark_toggle" for="groupByClassName">
                         <input class="remark_toggle_checkbox" type="checkbox" id="groupByClassName">
                         <div class="remark_toggle_switch"></div>
                         <span class="remark_toggle_label">BY CLASSNAME</span>
                     </label>
-                </span>     
+                </span>
                 <span class="setting_subgroup_item">
                     <label class="remark_toggle" for="groupByTagName">
                         <input class="remark_toggle_checkbox" type="checkbox" id="groupByTagName">
                         <div class="remark_toggle_switch"></div>
                         <span class="remark_toggle_label">BY TAGNAME</span>
                     </label>
-                </span>       
+                </span>
                 <span class="setting_subgroup_item">
                     <label class="remark_toggle" for="confirmBeforeGrouping">
                         <input class="remark_toggle_checkbox" type="checkbox" id="confirmBeforeGrouping">
                         <div class="remark_toggle_switch"></div>
                         <span class="remark_toggle_label">CONFIRM BEFORE GROUPING</span>
                     </label>
-                </span>     
+                </span>
             </div>
             <div class="settings_subgroup">
-                <h5 class="settings_subgroup_title">EXTRAS</h5>      
+                <h5 class="settings_subgroup_title">EXTRAS</h5>
                 <span class="setting_subgroup_item">
                     <label class="remark_toggle" for="showToolTip">
                         <input class="remark_toggle_checkbox" type="checkbox" id="showToolTip">
                         <div class="remark_toggle_switch"></div>
                         <span class="remark_toggle_label">SHOW TOOLTIP</span>
                     </label>
-                </span>     
+                </span>
             </div>
         </div>
         <button class="btn" id="start_annotation">
             START ANNOTATION
         </button>
     </div>
+    <div id="login" style="display: none">
+        <h3 class="main_heading">
+            Register
+        </h3>
+        <form id="login-form">
+            <input name="email" required type="email" id="email">
+            <button id="submitBtn" type="submit">Register User</button>
+        </form>
+    </div>
     <script src="./popup.js"></script>
 </body>
+
 </html>
