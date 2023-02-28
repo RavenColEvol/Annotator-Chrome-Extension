@@ -7,6 +7,11 @@ const ANNOTATIONS = ["SECTION", "BUTTON", "TITLE", "TEXT", "IMG", "LINK"];
 const DOM_ANNOTATIONS = new WeakMap();
 let currSelectedDOM = undefined;
 
+const handleBackspace = () => {
+  if(!currSelectedDOM || !currSelectedDOM.hasAttribute('data-remark-annotation')) return;
+  currSelectedDOM.removeAttribute('data-remark-annotation');
+}
+
 //* Declaring it on top make it available 
 //TODO: make it class based
 function Sidebar() {
@@ -48,6 +53,8 @@ Sidebar.init = function () {
       el.setAttribute('data-remark-annotation', annotationType);
     }
   })
+
+  sidebarDOM.querySelector('#removeLabel').addEventListener('click', handleBackspace)
 
   // sidebarDOM.querySelector('#select-dropdown').addEventListener('change', (e) => {
   //   const value = e['target']['value'];
@@ -97,6 +104,7 @@ Sidebar.prototype.insertSidebarDOM = function () {
             </div>
 				</div>
         <button id='applyLabel' type='submit'>Apply Label</button> 
+        <button id='removeLabel'>Remove Label</button> 
         </form>
 		</div>
 	`;
@@ -132,7 +140,7 @@ function remark_init(settings) {
 }
 
 function startAnnotationProcess() {
-  document.body.addEventListener("keypress", keyPressListener);
+  addEventListener("keydown", keyPressListener);
 
   document.body.addEventListener("click", clickListener);
   document.body.addEventListener("mouseover", mouseOverListener);
@@ -175,6 +183,13 @@ function mouseOutListener(e) {
 function keyPressListener(e) {
   if (e.key === "Escape") {
     removeAllExistingModals();
+  }
+
+  switch(e.key) {
+    case 'Backspace':
+      handleBackspace();
+      return;
+    default: break;
   }
 }
 
