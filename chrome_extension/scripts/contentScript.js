@@ -1,35 +1,82 @@
 //* GLOBAL VARIABLE DECLARATIONS
 
-var REMARK_SETTINGS;
-var annotations = [];
+let REMARK_SETTINGS;
+let annotations = [];
 let SELECTION_DOM_STYLE_TAG = null;
 const ANNOTATIONS = ["SECTION", "BUTTON", "TITLE", "TEXT", "IMG", "LINK"];
 const DOM_ANNOTATIONS = new WeakMap();
+let currSelectedDOM = undefined;
 
 //* Declaring it on top make it available 
 //TODO: make it class based
 function Sidebar() {
 	this.sidebar = document.createElement("fragment");
-	this.updateSidebarDOM();
+	this.insertSidebarDOM();
+  document.body.appendChild(this.sidebar);
 	return this
 }
 
 Sidebar.init = function () {
 	const sidebar = new Sidebar();
+  const sidebarDOM = sidebar.sidebar;
+  sidebarDOM.querySelector('#remark_standard_modal_close_btn').addEventListener('click', (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+    sidebar.close();
+  })
+  sidebarDOM.querySelector('#select-dropdown').addEventListener('change', (e) => {
+    const value = e['target']['value'];
+    if(!currSelectedDOM) return;
+    currSelectedDOM.setAttribute('data-remark-annotation', value);
+  })
 	return sidebar;
 }
 
 Sidebar.prototype.open = function() {
-	
+  this.sidebar.querySelector('#remark_annotations_sidebar').classList.add('remark_sidebar__open')
 }
 
 Sidebar.prototype.close = function() {
+  this.sidebar.querySelector('#remark_annotations_sidebar').classList.remove('remark_sidebar__open')
+}
 
+Sidebar.prototype.isOpen = function() { return this.sidebar.querySelector('#remark_annotations_sidebar')?.classList.has('remark_sidebar__open') }
+
+Sidebar.prototype.insertSidebarDOM = function () {
+  const that = this;
+  this.sidebar.innerHTML = `
+		<div class="remark_standard_sidebar ${that.isOpen() ? 'remark_sidebar__open' : ''}" id="remark_annotations_sidebar">
+				<div class="remark_sidebar_modal_header">
+						<h3 class="remark_standard_sidebar_title">ANNOTATION DATA</h3>
+						<div class="remark_standard_sidebar_actions">
+								<span class="remark_close_btn" id="remark_standard_modal_close_btn">
+								<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" class="remark_close_btn"><path fill="currentColor" d="M6.4 19L5 17.6l5.6-5.6L5 6.4L6.4 5l5.6 5.6L17.6 5L19 6.4L13.4 12l5.6 5.6l-1.4 1.4l-5.6-5.6L6.4 19Z" class="remark_"/></svg>
+								</span>
+						</div>
+				</div>
+				<div class="remark_standard_modal_body remark_standard_sidebar_body remark_standard_sidebar_body_full" id="remark_sidebar_body">
+						<div class="remark_form_fields">
+								<label for="annotation_id" class="remark_form_label">TYPE</label>
+								<select id='select-dropdown'>
+										${ANNOTATIONS.map(annotation => 
+												`<option value="${annotation}">${annotation}</option>`
+										)}
+								</select>
+						</div>
+            <div>
+              <input type="checkbox" id="groupByClass" name="groupByClass" checked>
+              <label for="groupByClass">Group all auto Selected</label><br>
+            </div>
+				</div>
+		</div>
+	`;
 }
 
 Sidebar.prototype.updateSidebarDOM = function() {
+  if (this.$$prevProps.isOpen === this.$isOpen) return;
+  const that = this;
 	this.sidebar.innerHTML = `
-		<div class="remark_standard_sidebar" id="remark_annotations_sidebar">
+		<div class="remark_standard_sidebar ${that.isOpen() ? 'remark_sidebar__open' : ''}" id="remark_annotations_sidebar">
 				<div class="remark_sidebar_modal_header">
 						<h3 class="remark_standard_sidebar_title">ANNOTATION DATA</h3>
 						<div class="remark_standard_sidebar_actions">
@@ -91,6 +138,9 @@ function clickListener(e) {
   e.preventDefault();
   e.stopPropagation();
 
+  const isCursorInsideSidebar = sidebar.sidebar.contains(e.target);
+  if(isCursorInsideSidebar) return;
+
   if (e.altKey) {
     handleLabelDelete(e);
   } else if (e.shiftKey) {
@@ -103,6 +153,8 @@ function clickListener(e) {
 function mouseOverListener(e) {
   e.preventDefault();
   e.stopPropagation();
+  const isCursorInsideSidebar = sidebar.sidebar.contains(e.target);
+  if(isCursorInsideSidebar) return;
   setSelectionDOMOverEl(e.target);
 }
 
@@ -505,7 +557,7 @@ function addAllClasses() {
     `
         position: fixed;
         top: 0px;
-        right: 0px;
+        right: -100%;
         width: 20rem;
         background-color: var(--remark-color-white);
         color: var(--remark-color-grey-dark-1);
@@ -517,6 +569,13 @@ function addAllClasses() {
         overflow: hidden;
         flex-direction: column;
         padding: 2rem;
+    `
+  );
+
+  createCSSClass(
+    ".remark_sidebar__open",
+    `
+      right: 0;
     `
   );
 
@@ -638,6 +697,29 @@ function addAllClasses() {
         transform: scale(1.0);
     `
   );
+
+  createCSSClass(
+    "[data-remark-annotation]",
+    `
+      position: relative;
+    `
+  );
+
+  createCSSClass(
+    "[data-remark-annotation]:after",
+    `
+      content: attr(data-remark-annotation);
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      outline: 2px solid red;
+      pointer-event: none;
+      font-size: 1rem;
+      text-align: left;
+    `
+  );
 }
 
 function getAnnotationByID(annotation_id, annotations) {
@@ -650,6 +732,7 @@ function getAnnotationByID(annotation_id, annotations) {
 }
 
 function removeAllExistingModals() {
+  sidebar.close();
   // const create_modal_check = document.getElementById("remark_create_annotation_modal");
   const edit_modal_check = document.getElementById(
     "remark_edit_annotation_modal"
@@ -696,22 +779,24 @@ function initializeExtensionDOM() {
   document.body.appendChild(style);
 }
 
+function getDOMClassName(dom) {
+  let classes = dom.getAttribute("class");
+  classes = classes ? classes.split(" ") : ["-"];
+  classes.unshift("");
+  return classes.join(".");
+}
+
 function setSelectionDOMOverEl(el) {
-	console.log('called')
   if (!el) return;
   const { isCollapsed, anchorNode, focusNode } = document.getSelection();
   let highlightDOM = el;
-
   if (!isCollapsed) {
     const commonParent = getLCA(anchorNode, focusNode);
     highlightDOM = commonParent;
   }
 
-  let classes = highlightDOM.getAttribute("class");
-  classes = classes ? classes.split(" ") : ["-"];
-  classes.unshift("");
-  const classSelector = classes.join(".");
-
+  currSelectedDOM = highlightDOM;
+  const classSelector = getDOMClassName(highlightDOM);
   SELECTION_DOM_STYLE_TAG.innerHTML = `
     ${classSelector} {
         position: relative;
@@ -768,7 +853,6 @@ function addContextsMenuItems() {
 }
 
 function handleLabelCreate(event) {
-  console.log("handle Label create");
 	sidebar.open();
 }
 
