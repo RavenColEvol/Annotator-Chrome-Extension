@@ -95,7 +95,7 @@ function setDataToStorage(key, value) {
     try {
         // [k] is a computed property. 
         // Without it, we can not set dynamic keys.
-        chrome.storage.local.set({
+        chrome.storage.sync.set({
             [key]: value 
         });
     } catch(e) {
@@ -105,7 +105,7 @@ function setDataToStorage(key, value) {
 
 function getDataFromStorage(key) {
     return new Promise((resolve) => {
-                chrome.storage.local.get([key], function(res) {
+                chrome.storage.sync.get([key], function(res) {
                 resolve(res);
             })
         }
