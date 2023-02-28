@@ -24,11 +24,36 @@ Sidebar.init = function () {
     e.stopPropagation();
     sidebar.close();
   })
-  sidebarDOM.querySelector('#select-dropdown').addEventListener('change', (e) => {
-    const value = e['target']['value'];
-    if(!currSelectedDOM) return;
-    currSelectedDOM.setAttribute('data-remark-annotation', value);
+  sidebarDOM.querySelector('#groupByClass').addEventListener('click', (e) => {
+    const checkbox = sidebarDOM.querySelector('#groupByClass input[type="checkbox"]')
+    checkbox.checked = !checkbox.checked;
+    console.log('checkbox', checkbox);
   })
+  sidebarDOM.querySelector('#applyLabel').addEventListener('click', (event) => {
+    const formEl = sidebarDOM.querySelector('#sidebar-form')
+    const data = new FormData(formEl);
+    
+    const groupByClass = data.get("groupByClass") === 'on';
+    const annotationType = data.get("annotation");
+
+    if(!groupByClass) {
+      if(!currSelectedDOM) return;
+        currSelectedDOM.setAttribute('data-remark-annotation', annotationType);
+      return;
+    }
+
+    const selectedDOMClass = getDOMClassName(currSelectedDOM);
+    const elements = Array.from(document.querySelectorAll(selectedDOMClass));
+    for(const el of elements) {
+      el.setAttribute('data-remark-annotation', annotationType);
+    }
+  })
+
+  // sidebarDOM.querySelector('#select-dropdown').addEventListener('change', (e) => {
+  //   const value = e['target']['value'];
+  //   if(!currSelectedDOM) return;
+  //   currSelectedDOM.setAttribute('data-remark-annotation', value);
+  // })
 	return sidebar;
 }
 
@@ -47,7 +72,8 @@ Sidebar.prototype.isOpen = function() {
 Sidebar.prototype.insertSidebarDOM = function () {
   const that = this;
   this.sidebar.innerHTML = `
-		<div class="remark_standard_sidebar ${that.isOpen() ? 'remark_sidebar__open' : ''}" id="remark_annotations_sidebar">
+  <div class="remark_standard_sidebar ${that.isOpen() ? 'remark_sidebar__open' : ''}" id="remark_annotations_sidebar">
+    <form id='sidebar-form'>
 				<div class="remark_sidebar_modal_header">
 						<h3 class="remark_standard_sidebar_title">ANNOTATION DATA</h3>
 						<div class="remark_standard_sidebar_actions">
@@ -59,46 +85,25 @@ Sidebar.prototype.insertSidebarDOM = function () {
 				<div class="remark_standard_modal_body remark_standard_sidebar_body remark_standard_sidebar_body_full" id="remark_sidebar_body">
 						<div class="remark_form_fields">
 								<label for="annotation_id" class="remark_form_label">TYPE</label>
-								<select id='select-dropdown'>
+								<select name='annotation' id='select-dropdown'>
 										${ANNOTATIONS.map(annotation => 
 												`<option value="${annotation}">${annotation}</option>`
 										)}
 								</select>
 						</div>
-            <div>
-              <input type="checkbox" id="groupByClass" name="groupByClass" checked>
+            <div id="groupByClass">
+              <input type="checkbox" name="groupByClass">
               <label for="groupByClass">Group all auto Selected</label><br>
             </div>
 				</div>
+        <button id='applyLabel' type='submit'>Apply Label</button> 
+        </form>
 		</div>
 	`;
 }
 
 Sidebar.prototype.updateSidebarDOM = function() {
-  if (this.$$prevProps.isOpen === this.$isOpen) return;
-  const that = this;
-	this.sidebar.innerHTML = `
-		<div class="remark_standard_sidebar ${that.isOpen() ? 'remark_sidebar__open' : ''}" id="remark_annotations_sidebar">
-				<div class="remark_sidebar_modal_header">
-						<h3 class="remark_standard_sidebar_title">ANNOTATION DATA</h3>
-						<div class="remark_standard_sidebar_actions">
-								<span class="remark_close_btn" id="remark_standard_modal_close_btn">
-								<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" class="remark_close_btn"><path fill="currentColor" d="M6.4 19L5 17.6l5.6-5.6L5 6.4L6.4 5l5.6 5.6L17.6 5L19 6.4L13.4 12l5.6 5.6l-1.4 1.4l-5.6-5.6L6.4 19Z" class="remark_"/></svg>
-								</span>
-						</div>
-				</div>
-				<div class="remark_standard_modal_body remark_standard_sidebar_body remark_standard_sidebar_body_full" id="remark_sidebar_body">
-						<div class="remark_form_fields">
-								<label for="annotation_id" class="remark_form_label">TYPE</label>
-								<select id='select-dropdown'>
-										${ANNOTATIONS.map(annotation => 
-												`<option value="${annotation}">${annotation}</option>`
-										)}
-								</select>
-						</div>
-				</div>
-		</div>
-	`;
+  
 }
 
 let sidebar = Sidebar.init();
@@ -722,6 +727,7 @@ function addAllClasses() {
       pointer-event: none;
       font-size: 1rem;
       text-align: left;
+      pointer-events:none;
     `
   );
 }
