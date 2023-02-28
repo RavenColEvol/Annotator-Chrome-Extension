@@ -40,7 +40,9 @@ Sidebar.prototype.close = function() {
   this.sidebar.querySelector('#remark_annotations_sidebar').classList.remove('remark_sidebar__open')
 }
 
-Sidebar.prototype.isOpen = function() { return this.sidebar.querySelector('#remark_annotations_sidebar')?.classList.has('remark_sidebar__open') }
+Sidebar.prototype.isOpen = function() { 
+  return this.sidebar.querySelector('#remark_annotations_sidebar')?.classList.contains('remark_sidebar__open') 
+}
 
 Sidebar.prototype.insertSidebarDOM = function () {
   const that = this;
@@ -154,7 +156,9 @@ function mouseOverListener(e) {
   e.preventDefault();
   e.stopPropagation();
   const isCursorInsideSidebar = sidebar.sidebar.contains(e.target);
-  if(isCursorInsideSidebar) return;
+  console.log('isOpen', sidebar.isOpen());
+  if(isCursorInsideSidebar || sidebar.isOpen()) return;
+  console.log("here");
   setSelectionDOMOverEl(e.target);
 }
 
