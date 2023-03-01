@@ -134,7 +134,6 @@ function remark_init(settings) {
   );
   removeAllExistingModals();
   addAllClasses();
-  addContextsMenuItems();
   initializeExtensionDOM();
   startAnnotationProcess();
 }
@@ -232,79 +231,6 @@ function deleteLabel(t, annotations) {
 
   return annotations;
 }
-
-// ************** Component functions **************
-let SIDEBAR_DIM = (curAnnotation) => {
-  let text = curAnnotation["text"];
-  if (text.length > 60) {
-    text = text.substr(0, 60) + ". . .";
-  }
-
-  return markup;
-};
-
-let EDIT_ANNOTATION_MODAL = (curAnnotation) => {
-  const markup = `
-        <div class="remark_standard_modal" id="remark_edit_annotation_modal">
-            <h3 class="remark_standard_modal_title">Edit Annotation</h3>
-            <div class="remark_standard_modal_body">
-                <form id="editAnnotationForm" class="remark_form" data-annotation_id="${curAnnotation["id"]}">
-                    <div class="remark_form_fields">
-                        <label for="annotation_id" class="remark_form_label">ID</label>
-                        <input type="text" name="annotation_id" class="remark_form_input" value="${curAnnotation["id"]}" readonly disabled>
-                    </div>
-                    <div class="remark_form_fields">
-                        <label for="annotation_type" class="remark_form_label">TYPE</label>
-                        <input type="text" name="annotation_type" class="remark_form_input" value=${curAnnotation["type"]}>
-                    </div>
-                    <div class="remark_form_fields">
-                        <label for="annotation_text" class="remark_form_label">TEXT</label>
-                        <input type="text" name="annotation_text" class="remark_form_input" value=${curAnnotation["text"]}>
-                    </div>
-                    <div class="remark_form_fields">
-                        <label for="annotation_coordinates" class="remark_form_label">COORDINATES</label>
-                        <input type="text" name="annotation_coordinates" class="remark_form_input" value="${curAnnotation["coordinates"]}">
-                    </div>
-                    <div class="remark_form_fields">
-                        <label for="annotation_parent" class="remark_form_label">PARENT</label>
-                        <input type="text" name="annotation_parent" class="remark_form_input" value="${curAnnotation["parent"]}" readonly disabled>
-                    </div>
-                    <div class="remark_form_fields">
-                        <button type="button" class="remark_standard_button" id="remark_edit_annotation_button">Edit</button>
-                    </div>
-                </form>
-            </div>
-        </div>
-        </div>
-    `;
-  return markup;
-};
-
-let TOOLTIP = (ele) => {
-  const rect = ele.getBoundingClientRect();
-  const x = Math.round(rect.x),
-    y = Math.round(rect.y),
-    w = Math.round(rect.width),
-    h = Math.round(rect.height);
-  const markup = `
-        <div id="remark_tooltip">
-            <h4>${ele.tagName}</h4>
-            <p style="margin: 0.1rem 0rem 0rem 0rem;">(${w} x ${h})</p>
-        </div>
-    
-    `;
-  return markup;
-};
-
-let CONFIRM_GROUPING_MARKUP = () => {
-  const markup = `
-        <span class="remark_confirm_grouping">
-            <span class="remark_grouping_options">Yes</span>
-            <span class="remark_grouping_options">No</span>
-        </span>
-    `;
-  return markup;
-};
 
 // *************** Utility functions ***************
 
@@ -756,21 +682,6 @@ function getAnnotationByID(annotation_id, annotations) {
 
 function removeAllExistingModals() {
   sidebar.close();
-  // const create_modal_check = document.getElementById("remark_create_annotation_modal");
-  const edit_modal_check = document.getElementById(
-    "remark_edit_annotation_modal"
-  );
-  // const delete_modal_check = document.getElementById("remark_delete_annotation_modal");
-
-  // if (create_modal_check) {
-  //     removeHTMLElement(create_modal_check);
-  // }
-  if (edit_modal_check) {
-    removeHTMLElement(edit_modal_check);
-  }
-  // if (delete_modal_check) {
-  //     removeHTMLElement(delete_modal_check);
-  // }
 }
 
 // ****************** Chrome APIs ******************
@@ -869,10 +780,6 @@ function getLCA(elem1, elem2) {
   }
 
   return elem1;
-}
-
-function addContextsMenuItems() {
-  console.log("cm", chrome.contextMenus);
 }
 
 function handleLabelCreate(event) {
