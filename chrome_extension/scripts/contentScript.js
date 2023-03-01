@@ -3,83 +3,107 @@
 let REMARK_SETTINGS;
 let annotations = [];
 let SELECTION_DOM_STYLE_TAG = null;
-const ANNOTATIONS = ["SECTION", "BUTTON", "TITLE", "TEXT", "IMG", "LINK"];
+let ANNOTATIONS = ["SECTION", "BUTTON", "TITLE", "TEXT", "IMG", "LINK"];
 const DOM_ANNOTATIONS = new WeakMap();
 let currSelectedDOM = undefined;
 
 const handleBackspace = () => {
-  if(!currSelectedDOM || !currSelectedDOM.hasAttribute('data-remark-annotation')) return;
-  currSelectedDOM.removeAttribute('data-remark-annotation');
-}
+  if (
+    !currSelectedDOM ||
+    !currSelectedDOM.hasAttribute("data-remark-annotation")
+  )
+    return;
+  currSelectedDOM.removeAttribute("data-remark-annotation");
+};
 
-//* Declaring it on top make it available 
+//* Declaring it on top make it available
 //TODO: make it class based
 function Sidebar() {
-	this.sidebar = document.createElement("fragment");
-	this.insertSidebarDOM();
+  this.sidebar = document.createElement("fragment");
+  this.insertSidebarDOM();
   document.body.appendChild(this.sidebar);
-	return this
+  return this;
 }
 
 Sidebar.init = function () {
-	const sidebar = new Sidebar();
+  const sidebar = new Sidebar();
   const sidebarDOM = sidebar.sidebar;
-  sidebarDOM.querySelector('#remark_standard_modal_close_btn').addEventListener('click', (e) => {
-    e.preventDefault();
-    e.stopPropagation();
-    sidebar.close();
-  })
-  sidebarDOM.querySelector('#groupByClass').addEventListener('click', (e) => {
-    const checkbox = sidebarDOM.querySelector('#groupByClass input[type="checkbox"]')
+  sidebarDOM
+    .querySelector("#remark_standard_modal_close_btn")
+    .addEventListener("click", (e) => {
+      e.preventDefault();
+      e.stopPropagation();
+      sidebar.close();
+    });
+  sidebarDOM.querySelector("#groupByClass").addEventListener("click", (e) => {
+    const checkbox = sidebarDOM.querySelector(
+      '#groupByClass input[type="checkbox"]'
+    );
     checkbox.checked = !checkbox.checked;
-    console.log('checkbox', checkbox);
-  })
-  sidebarDOM.querySelector('#applyLabel').addEventListener('click', (event) => {
-    const formEl = sidebarDOM.querySelector('#sidebar-form')
+    console.log("checkbox", checkbox);
+  });
+  sidebarDOM.querySelector("#applyLabel").addEventListener("click", (event) => {
+    const formEl = sidebarDOM.querySelector("#sidebar-form");
     const data = new FormData(formEl);
-    
-    const groupByClass = data.get("groupByClass") === 'on';
+
+    const groupByClass = data.get("groupByClass") === "on";
     const annotationType = data.get("annotation");
 
-    if(!groupByClass) {
-      if(!currSelectedDOM) return;
-        currSelectedDOM.setAttribute('data-remark-annotation', annotationType);
+    if (!groupByClass) {
+      if (!currSelectedDOM) return;
+      currSelectedDOM.setAttribute("data-remark-annotation", annotationType);
       return;
     }
 
     const selectedDOMClass = getDOMClassName(currSelectedDOM);
     const elements = Array.from(document.querySelectorAll(selectedDOMClass));
-    for(const el of elements) {
-      el.setAttribute('data-remark-annotation', annotationType);
+    for (const el of elements) {
+      el.setAttribute("data-remark-annotation", annotationType);
     }
+  });
+
+  sidebarDOM.querySelector('#createLabel').addEventListener('click', async (event) => {
+    event.preventDefault();
+    const newLabel = sidebarDOM.querySelector('#remark-new-label').value;
+    await createAndAddNewLabel(newLabel);
   })
 
-  sidebarDOM.querySelector('#removeLabel').addEventListener('click', handleBackspace)
+  sidebarDOM
+    .querySelector("#removeLabel")
+    .addEventListener("click", handleBackspace);
 
   // sidebarDOM.querySelector('#select-dropdown').addEventListener('change', (e) => {
   //   const value = e['target']['value'];
   //   if(!currSelectedDOM) return;
   //   currSelectedDOM.setAttribute('data-remark-annotation', value);
   // })
-	return sidebar;
-}
+  return sidebar;
+};
 
-Sidebar.prototype.open = function() {
-  this.sidebar.querySelector('#remark_annotations_sidebar').classList.add('remark_sidebar__open')
-}
+Sidebar.prototype.open = function () {
+  this.sidebar
+    .querySelector("#remark_annotations_sidebar")
+    .classList.add("remark_sidebar__open");
+};
 
-Sidebar.prototype.close = function() {
-  this.sidebar.querySelector('#remark_annotations_sidebar').classList.remove('remark_sidebar__open')
-}
+Sidebar.prototype.close = function () {
+  this.sidebar
+    .querySelector("#remark_annotations_sidebar")
+    .classList.remove("remark_sidebar__open");
+};
 
-Sidebar.prototype.isOpen = function() { 
-  return this.sidebar.querySelector('#remark_annotations_sidebar')?.classList.contains('remark_sidebar__open') 
-}
+Sidebar.prototype.isOpen = function () {
+  return this.sidebar
+    .querySelector("#remark_annotations_sidebar")
+    ?.classList.contains("remark_sidebar__open");
+};
 
 Sidebar.prototype.insertSidebarDOM = function () {
   const that = this;
   this.sidebar.innerHTML = `
-  <div class="remark_standard_sidebar ${that.isOpen() ? 'remark_sidebar__open' : ''}" id="remark_annotations_sidebar">
+  <div class="remark_standard_sidebar ${
+    that.isOpen() ? "remark_sidebar__open" : ""
+  }" id="remark_annotations_sidebar">
     <form id='sidebar-form'>
 				<div class="remark_sidebar_modal_header">
 						<h3 class="remark_standard_sidebar_title">ANNOTATION DATA</h3>
@@ -93,14 +117,19 @@ Sidebar.prototype.insertSidebarDOM = function () {
 						<div class="remark_form_fields">
 								<label for="annotation_id" class="remark_form_label">TYPE</label>
 								<select name='annotation' id='select-dropdown'>
-										${ANNOTATIONS.map(annotation => 
-												`<option value="${annotation}">${annotation}</option>`
-										)}
+										${ANNOTATIONS.map(
+                      (annotation) =>
+                        `<option value="${annotation}">${annotation}</option>`
+                    )}
 								</select>
 						</div>
             <div id="groupByClass">
               <input type="checkbox" name="groupByClass">
               <label for="groupByClass">Group all auto Selected</label><br>
+            </div>
+            <div>
+              <input type='text' placeholder='New Label' id='remark-new-label' />
+              <button id='createLabel'>Create Label</button>
             </div>
 				</div>
         <button id='applyLabel' type='submit'>Apply Label</button> 
@@ -108,11 +137,14 @@ Sidebar.prototype.insertSidebarDOM = function () {
         </form>
 		</div>
 	`;
-}
+};
 
-Sidebar.prototype.updateSidebarDOM = function() {
-  
-}
+Sidebar.prototype.updateAnnotations = function () {
+  const sidebarDOM = sidebar.sidebar;
+  sidebarDOM.querySelector("#select-dropdown").innerHTML = ANNOTATIONS.map(
+    (annotation) => `<option value="${annotation}">${annotation}</option>`
+  ).join('');
+};
 
 let sidebar = Sidebar.init();
 
@@ -122,6 +154,9 @@ let sidebar = Sidebar.init();
   let settings = await getDataFromStorage("remark_settings");
   settings = settings["remark_settings"];
   console.log("outside storage : ", settings);
+  ANNOTATIONS = await getAnnotations();
+  sidebar.updateAnnotations();
+  // update annotations
   remark_init(settings);
 })();
 
@@ -153,7 +188,7 @@ function clickListener(e) {
   e.stopPropagation();
 
   const isCursorInsideSidebar = sidebar.sidebar.contains(e.target);
-  if(isCursorInsideSidebar) return;
+  if (isCursorInsideSidebar) return;
 
   if (e.altKey) {
     handleLabelDelete(e);
@@ -168,7 +203,7 @@ function mouseOverListener(e) {
   e.preventDefault();
   e.stopPropagation();
   const isCursorInsideSidebar = sidebar.sidebar.contains(e.target);
-  if(isCursorInsideSidebar || sidebar.isOpen()) return;
+  if (isCursorInsideSidebar || sidebar.isOpen()) return;
   setSelectionDOMOverEl(e.target);
 }
 
@@ -182,11 +217,12 @@ function keyPressListener(e) {
     removeAllExistingModals();
   }
 
-  switch(e.key) {
-    case 'Backspace':
+  switch (e.key) {
+    case "Backspace":
       handleBackspace();
       return;
-    default: break;
+    default:
+      break;
   }
 }
 
@@ -783,7 +819,7 @@ function getLCA(elem1, elem2) {
 }
 
 function handleLabelCreate(event) {
-	sidebar.open();
+  sidebar.open();
 }
 
 function handleLabelDelete(event) {
@@ -792,4 +828,30 @@ function handleLabelDelete(event) {
 
 function handleLabelUpdate(event) {
   console.log("handle label update");
+}
+
+async function getAnnotations() {
+  var requestOptions = {
+    method: "GET",
+    redirect: "follow",
+  };
+  const res = await fetch("http://localhost:3000/api/labels", requestOptions);
+  const json = await res.json();
+  return json["labels"];
+}
+
+async function createAndAddNewLabel(label) {
+  var requestOptions = {
+    method: "POST",
+    body: JSON.stringify({
+      title: label
+    }),
+    headers: {
+      "Content-Type": "application/json"
+    }
+  };
+  const res = await fetch("http://localhost:3000/api/labels", requestOptions);
+  await res.json();
+  ANNOTATIONS.push(label.toLocaleLowerCase());
+  sidebar.updateAnnotations();
 }
