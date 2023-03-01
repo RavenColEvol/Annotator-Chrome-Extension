@@ -169,9 +169,7 @@ function mouseOverListener(e) {
   e.preventDefault();
   e.stopPropagation();
   const isCursorInsideSidebar = sidebar.sidebar.contains(e.target);
-  console.log('isOpen', sidebar.isOpen());
   if(isCursorInsideSidebar || sidebar.isOpen()) return;
-  console.log("here");
   setSelectionDOMOverEl(e.target);
 }
 
