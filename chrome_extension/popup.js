@@ -9,6 +9,27 @@ const loginForm = document.getElementById("login-form");
 
 const backend = 'https://data-science-theta.vercel.app/api'
 
+function downloadFile(file) {
+  const url = URL.createObjectURL(file);
+  const a = document.createElement("a");
+  a.href = url;
+  a.download = file.name;
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+  URL.revokeObjectURL(url);
+}
+
+function dataURLtoFile(dataurl, filename) {
+  var arr = dataurl.split(','), mime = arr[0].match(/:(.*?);/)[1],
+      bstr = atob(arr[1]), n = bstr.length, u8arr = new Uint8Array(n);
+  while(n--){
+      u8arr[n] = bstr.charCodeAt(n);
+  }
+  return new File([u8arr], filename, {type:mime});
+}
+
+
 const createUser = async (email) => {
   const requestOptions = {
     method: "POST",
@@ -86,8 +107,13 @@ saveAnnotationBtn.addEventListener("click", async (e) => {
       document.head.appendChild(style);
     }
   })
-  const dataSrc = await Screenshot(tab);
   
+  const dataSrc = await Screenshot(tab);
+  const file = dataURLtoFile(dataSrc, tab['url'].split('/').join('-') + '.png');
+
+  downloadFile(file);
+  downloadFile(labelFile);
+
   await chrome.scripting.executeScript({
     target: { tabId: tab.id },
     func: () => {

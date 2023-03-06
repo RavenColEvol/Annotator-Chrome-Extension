@@ -3,7 +3,30 @@ window.Screenshot = async function (tab) {
   return new Promise((res) => chrome.windows.get(windowId, { populate: true }, async function (window) {
     const width = window.tabs[0].width;
     const height = window.tabs[0].height;
-
+    // set all position fixed => absolute, sticky => relative
+    await chrome.scripting.executeScript({ 
+      target: { tabId: tab.id }, 
+      func: () => {
+        const els = Array.from(document.querySelectorAll('*'));
+        const positionTo = { 'fixed': 'absolute', 'sticky': 'relative'};
+        document.body.style.overflow = 'hidden';
+        for(const el of els) {
+          if(el.style['position'] && ['fixed', 'sticky'].includes(el.style['position'])) {
+            const position = el.style['position']
+            el.style['position'] = positionTo[position];
+            el.setAttribute('data-position',position);
+          } else {
+            const styles = getComputedStyle(el);
+            const position = styles.getPropertyValue('position');
+            if(position && ['fixed', 'sticky'].includes(position)) {
+              el.style['position'] = positionTo[position];
+              el.setAttribute('data-position',position);
+            }
+          }
+        }
+      }
+    });
+    
     console.log("window", width, height);
     // TODO: SCROLL TO TOP AND GET 
     const [{ result }] = await chrome.scripting.executeScript({ 
@@ -41,7 +64,6 @@ window.Screenshot = async function (tab) {
         );
       })
     }
-    debugger;
     const getDataImageDIM = async (src) => {
       const img = new Image();
       img.src = src;
@@ -69,6 +91,19 @@ window.Screenshot = async function (tab) {
           }
       })
     }
-    return res(canvas.toDataURL('image/png'));
+    const base64 = await res(canvas.toDataURL('image/png'));
+
+    await chrome.scripting.executeScript({ 
+      target: { tabId: tab.id }, 
+      func: () => {
+        const els = Array.from(document.querySelectorAll('[data-position]'));
+        document.body.style.overflow = 'auto';
+        for(const el of els) {
+          el.style['position'] = el.getAttribute('data-position');
+          el.removeAttribute('data-position');
+        }
+      }
+    });
+    return base64
   }));
 };
