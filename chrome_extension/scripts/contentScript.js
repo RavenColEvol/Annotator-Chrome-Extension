@@ -8,7 +8,8 @@ const DOM_ANNOTATIONS = new WeakMap();
 let currSelectedDOM = undefined;
 const backend = 'https://data-science-theta.vercel.app/api'
 
-const handleBackspace = () => {
+const handleBackspace = (e) => {
+  e.preventDefault();
   if (
     !currSelectedDOM ||
     !currSelectedDOM.hasAttribute("data-remark-annotation")
@@ -37,6 +38,7 @@ Sidebar.init = function () {
       sidebar.close();
     });
   sidebarDOM.querySelector("#groupByClass").addEventListener("click", (e) => {
+    e.preventDefault();
     const checkbox = sidebarDOM.querySelector(
       '#groupByClass input[type="checkbox"]'
     );
@@ -44,6 +46,7 @@ Sidebar.init = function () {
     console.log("checkbox", checkbox);
   });
   sidebarDOM.querySelector("#applyLabel").addEventListener("click", (event) => {
+    event.preventDefault();
     const formEl = sidebarDOM.querySelector("#sidebar-form");
     const data = new FormData(formEl);
 
@@ -111,7 +114,7 @@ Sidebar.prototype.insertSidebarDOM = function () {
 				</div>
 				<div class="remark_standard_modal_body remark_standard_sidebar_body remark_standard_sidebar_body_full" id="remark_sidebar_body">
 						<div class="remark_form_fields">
-								<label for="annotation_id" class="remark_form_label">TYPE</label>
+								<label for="annotation_id" class="remark_form_label">Component Type</label>
 								<select name='annotation' id='select-dropdown'>
 										${ANNOTATIONS.map(
                       (annotation) =>
@@ -121,15 +124,17 @@ Sidebar.prototype.insertSidebarDOM = function () {
 						</div>
             <div id="groupByClass">
               <input type="checkbox" name="groupByClass">
-              <label for="groupByClass">Group all auto Selected</label><br>
+              <label for="groupByClass">Add Label to all highlighted at once.</label><br>
             </div>
-            <div>
+            <div class='create_label'>
               <input type='text' placeholder='New Label' id='remark-new-label' />
               <button id='createLabel'>Create Label</button>
             </div>
 				</div>
-        <button id='applyLabel' type='submit'>Apply Label</button> 
-        <button id='removeLabel'>Remove Label</button> 
+        <div class='btn-container'>
+          <button id='applyLabel' type='submit'>Apply Label</button> 
+          <button id='removeLabel'>Remove Label</button> 
+        </div>
         </form>
 		</div>
 	`;
@@ -150,7 +155,8 @@ let sidebar = Sidebar.init();
   let settings = await getDataFromStorage("remark_settings");
   settings = settings["remark_settings"];
   console.log("outside storage : ", settings);
-  await setAnnotations();
+  // let it happen in background
+  setAnnotations();
   // update annotations
   remark_init(settings);
 })();
@@ -171,7 +177,7 @@ function remark_init(settings) {
 function startAnnotationProcess() {
   addEventListener("keydown", keyPressListener);
 
-  document.body.addEventListener("click", clickListener);
+  document.body.addEventListener("click", clickListener, true);
   document.body.addEventListener("mouseover", mouseOverListener);
   document.body.addEventListener("mouseout", mouseOutListener);
 }
@@ -179,27 +185,27 @@ function startAnnotationProcess() {
 // ******************* Listeners *******************
 
 function clickListener(e) {
+  const lastEl = e.composedPath()[0];
+  const isCursorInsideSidebar = sidebar.sidebar.contains(lastEl);
+  if (isCursorInsideSidebar) return;
   e.preventDefault();
   e.stopPropagation();
-
-  const isCursorInsideSidebar = sidebar.sidebar.contains(e.target);
-  if (isCursorInsideSidebar) return;
-
-  if (e.altKey) {
-    handleLabelDelete(e);
-  } else if (e.shiftKey) {
-    handleLabelUpdate(e);
-  } else {
-    handleLabelCreate(e);
-  }
+  handleLabelCreate(e);
 }
 
 function mouseOverListener(e) {
   e.preventDefault();
   e.stopPropagation();
-  const isCursorInsideSidebar = sidebar.sidebar.contains(e.target);
+  let target = e.target;
+  const isCursorInsideSidebar = sidebar.sidebar.contains(target);
   if (isCursorInsideSidebar || sidebar.isOpen()) return;
-  setSelectionDOMOverEl(e.target);
+
+  if (e.target.tagName === 'IMG') {
+    target = e.target.parentElement;
+  }
+  console.log('tagName', target);
+
+  setSelectionDOMOverEl(target);
 }
 
 function mouseOutListener(e) {
@@ -746,8 +752,8 @@ function initializeExtensionDOM() {
 
 function getDOMClassName(dom) {
   let classes = dom.getAttribute("class");
-  classes = classes ? classes.split(" ") : ["-"];
-  classes.unshift("");
+  classes = classes ? classes.split(" ") : [];
+  classes.unshift(dom.tagName);
   return classes.join(".");
 }
 
@@ -777,6 +783,7 @@ function setSelectionDOMOverEl(el) {
         z-index: 999999;
         pointer-events: none;
         background: rgba(128,203,196, .5);
+        border: 1px solid rgba(128,203,196, .8);
     }
   `;
 }
@@ -859,4 +866,3 @@ async function createAndAddNewLabel(label) {
     console.debug("Error while creating label", error);
   }
 }
-alert('hello world')

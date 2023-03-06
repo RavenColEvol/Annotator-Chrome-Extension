@@ -121,12 +121,12 @@ async function remark_start() {
       },
       files: ["scripts/contentScript.js"],
     });
-    // chrome.scripting.insertCSS({
-    //   target: {
-    //     tabId: curTab.id,
-    //   },
-    //   files: ["scripts/remark.css"],
-    // });
+    chrome.scripting.insertCSS({
+      target: {
+        tabId: curTab.id,
+      },
+      files: ["scripts/style.css"],
+    });
   } catch (e) {
     console.log("chrome error : ", e.message);
   }
