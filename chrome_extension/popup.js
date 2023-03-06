@@ -7,6 +7,32 @@ const login = document.getElementById("login");
 
 const loginForm = document.getElementById("login-form");
 
+const backend = 'https://data-science-theta.vercel.app/api'
+
+const createUser = async (email) => {
+  const requestOptions = {
+    method: "POST",
+    body: JSON.stringify({
+      email
+    }),
+    headers: {
+      "Content-Type": "application/json"
+    }
+  };
+  try {
+    const res = await fetch(`${backend}/create-user`, requestOptions);
+    const { msg } = await res.json();
+  } catch(error) {
+    setErrText('Error while creating user');
+    console.debug("Error while creating user", error);
+  }
+}
+
+const setErrText = (text) => {
+  const errText = document.getElementById('err-text');
+  errText.innerText = text;
+}
+
 onload = async function () {
   const isRegistered = await getDataFromStorage("email");
   if (
@@ -20,24 +46,16 @@ onload = async function () {
       event.preventDefault();
       const data = new FormData(event.target);
       const email = data.get("email");
+      if(email === '') {
+        return setErrText('Please enter your email');
+      }
+      await createUser(email);
       await setDataToStorage("email", email);
       app.style.display = "block";
       login.style.display = "none";
     });
   }
 };
-
-// var remarkGlobalState = {
-//     remark_settings: {
-//         // Grouping
-//         groupByClassName: true,
-//         groupByTagName: false,
-//         confirmBeforeGrouping: false,
-
-//         // Extras
-//         showToolTip: false,
-//     }
-// }
 
 const startStopBtn = document.getElementById("start_annotation");
 const saveAnnotationBtn = document.getElementById("save_annotation");
@@ -68,7 +86,6 @@ saveAnnotationBtn.addEventListener("click", async (e) => {
       document.head.appendChild(style);
     }
   })
-  debugger;
   const dataSrc = await Screenshot(tab);
   
   await chrome.scripting.executeScript({
@@ -78,7 +95,6 @@ saveAnnotationBtn.addEventListener("click", async (e) => {
       style.parentElement.removeChild(style);
     }
   })
-  console.log('labels', labelFile, dataSrc);
 });
 
 async function remark_start() {
@@ -96,8 +112,6 @@ async function remark_start() {
 
   const temp = await getDataFromStorage("remark_settings");
 
-  console.log("SETTINGS : ", temp);
-
   // Execute the contentScript
   try {
     const curTab = await getCurrentTab();
@@ -107,6 +121,12 @@ async function remark_start() {
       },
       files: ["scripts/contentScript.js"],
     });
+    // chrome.scripting.insertCSS({
+    //   target: {
+    //     tabId: curTab.id,
+    //   },
+    //   files: ["scripts/remark.css"],
+    // });
   } catch (e) {
     console.log("chrome error : ", e.message);
   }

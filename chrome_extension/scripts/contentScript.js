@@ -6,6 +6,7 @@ let SELECTION_DOM_STYLE_TAG = null;
 let ANNOTATIONS = ["SECTION", "BUTTON", "TITLE", "TEXT", "IMG", "LINK"];
 const DOM_ANNOTATIONS = new WeakMap();
 let currSelectedDOM = undefined;
+const backend = 'https://data-science-theta.vercel.app/api'
 
 const handleBackspace = () => {
   if (
@@ -72,11 +73,6 @@ Sidebar.init = function () {
     .querySelector("#removeLabel")
     .addEventListener("click", handleBackspace);
 
-  // sidebarDOM.querySelector('#select-dropdown').addEventListener('change', (e) => {
-  //   const value = e['target']['value'];
-  //   if(!currSelectedDOM) return;
-  //   currSelectedDOM.setAttribute('data-remark-annotation', value);
-  // })
   return sidebar;
 };
 
@@ -154,8 +150,7 @@ let sidebar = Sidebar.init();
   let settings = await getDataFromStorage("remark_settings");
   settings = settings["remark_settings"];
   console.log("outside storage : ", settings);
-  ANNOTATIONS = await getAnnotations();
-  sidebar.updateAnnotations();
+  await setAnnotations();
   // update annotations
   remark_init(settings);
 })();
@@ -830,14 +825,19 @@ function handleLabelUpdate(event) {
   console.log("handle label update");
 }
 
-async function getAnnotations() {
+async function setAnnotations() {
   var requestOptions = {
     method: "GET",
     redirect: "follow",
   };
-  const res = await fetch("http://localhost:3000/api/labels", requestOptions);
-  const json = await res.json();
-  return json["labels"];
+  try {
+    const res = await fetch(`${backend}/labels`, requestOptions);
+    const json = await res.json();
+    ANNOTATIONS =  json["labels"];
+    sidebar.updateAnnotations();
+  } catch(err) {
+    console.debug("Error while fetching labels", err);
+  }
 }
 
 async function createAndAddNewLabel(label) {
@@ -850,8 +850,13 @@ async function createAndAddNewLabel(label) {
       "Content-Type": "application/json"
     }
   };
-  const res = await fetch("http://localhost:3000/api/labels", requestOptions);
-  await res.json();
-  ANNOTATIONS.push(label.toLocaleLowerCase());
-  sidebar.updateAnnotations();
+  try {
+    const res = await fetch(`${backend}/labels`, requestOptions);
+    await res.json();
+    ANNOTATIONS.push(label.toLocaleLowerCase());
+    sidebar.updateAnnotations();
+  } catch(error) {
+    console.debug("Error while creating label", error);
+  }
 }
+alert('hello world')
