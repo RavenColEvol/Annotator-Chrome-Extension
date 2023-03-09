@@ -89,6 +89,27 @@ startStopBtn.addEventListener("click", (e) => {
   remark_start();
 });
 
+const uploadFile = (file, labelFile) => {
+  var myHeaders = new Headers();
+  myHeaders.append("email", "ravi.lamkoti@contentstack.com");
+
+  var formdata = new FormData();
+  formdata.append("image", file, "Screenshot 2023-02-06 at 4.35.42 PM.png");
+  formdata.append("label", labelFile, "ExtensionsMicroservice.txt");
+
+  var requestOptions = {
+    method: 'POST',
+    headers: myHeaders,
+    body: formdata,
+    redirect: 'follow'
+  };
+
+  fetch("http://localhost:3000/api/submit", requestOptions)
+    .then(response => response.text())
+    .then(result => console.log(result))
+    .catch(error => console.log('error', error));
+}
+
 saveAnnotationBtn.addEventListener("click", async (e) => {
   e.preventDefault();
   const tab = await getCurrentTab();
@@ -111,8 +132,10 @@ saveAnnotationBtn.addEventListener("click", async (e) => {
   const dataSrc = await Screenshot(tab);
   const file = dataURLtoFile(dataSrc, tab['url'].split('/').join('-') + '.png');
 
-  downloadFile(file);
-  downloadFile(labelFile);
+  // downloadFile(file);
+  // downloadFile(labelFile);
+
+  await uploadFile(file, labelFile);
 
   await chrome.scripting.executeScript({
     target: { tabId: tab.id },

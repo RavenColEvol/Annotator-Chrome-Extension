@@ -122,10 +122,12 @@ Sidebar.prototype.insertSidebarDOM = function () {
                     )}
 								</select>
 						</div>
+
             <div id="groupByClass">
-              <input type="checkbox" name="groupByClass">
-              <label for="groupByClass">Add Label to all highlighted at once.</label><br>
+            <input type="checkbox" name="groupByClass">
+            <label for="groupByClass">Add Label to all highlighted at once.</label><br>
             </div>
+            <p>Create Label Form</p>
             <div class='create_label'>
               <input type='text' placeholder='New Label' id='remark-new-label' />
               <button id='createLabel'>Create Label</button>
@@ -199,12 +201,6 @@ function mouseOverListener(e) {
   let target = e.target;
   const isCursorInsideSidebar = sidebar.sidebar.contains(target);
   if (isCursorInsideSidebar || sidebar.isOpen()) return;
-
-  if (e.target.tagName === 'IMG') {
-    target = e.target.parentElement;
-  }
-  console.log('tagName', target);
-
   setSelectionDOMOverEl(target);
 }
 
@@ -756,6 +752,8 @@ function getDOMClassName(dom) {
   classes.unshift(dom.tagName);
   return classes.join(".");
 }
+
+const activeElements = [];
 
 function setSelectionDOMOverEl(el) {
   if (!el) return;
